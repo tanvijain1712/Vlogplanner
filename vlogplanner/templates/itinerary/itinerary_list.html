@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Itinerary — {{ trip.trip_name }}{% endblock %}
+{% block page_title %}Itinerary — {{ trip.trip_name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'trip_detail' trip.pk %}" class="btn btn-sm btn-light">← Back</a>
+<a href="{% url 'itinerary_create' trip.pk %}" class="btn-terra" style="font-size:.85rem;padding:8px 16px">+ Add Activity</a>
+{% endblock %}
+{% block content %}
+{% if days %}
+  {% for day_num, items in days.items %}
+  <div class="card mb-4">
+    <div class="card-header" style="background:var(--ink);border-radius:16px 16px 0 0">
+      <span style="color:#fff;font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700">
+        Day {{ day_num }}
+      </span>
+      <span style="color:rgba(255,255,255,.45);font-size:.78rem">{{ items|length }} activit{{ items|length|pluralize:"y,ies" }}</span>
+    </div>
+    <div class="card-body" style="padding:24px 28px">
+      <div class="timeline">
+        {% for item in items %}
+        <div class="timeline-item">
+          <div class="d-flex justify-content-between align-items-start">
+            <div style="flex:1">
+              <div style="font-size:.75rem;color:var(--terra);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px">
+                {{ item.time_slot|time:"H:i" }}
+                {% if item.location %} · 📍 {{ item.location }}{% endif %}
+              </div>
+              <div style="font-size:.95rem;font-weight:500;color:var(--ink)">{{ item.activity }}</div>
+              {% if item.notes %}
+              <div style="font-size:.82rem;color:var(--muted);margin-top:4px">{{ item.notes }}</div>
+              {% endif %}
+            </div>
+            <form method="post" action="{% url 'itinerary_delete' item.pk %}" onsubmit="return confirm('Remove this activity?')">
+              {% csrf_token %}
+              <button type="submit" style="border:none;background:none;color:#ccc;cursor:pointer;font-size:1rem;padding:0 4px" title="Remove">✕</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📅</div>
+  <h4>No itinerary yet</h4>
+  <p style="font-size:.9rem">Start scheduling your day-by-day activities</p>
+  <a href="{% url 'itinerary_create' trip.pk %}" class="btn-terra" style="display:inline-block;margin-top:16px;text-decoration:none">Add First Activity</a>
+</div>
+{% endif %}
+{% endblock %}

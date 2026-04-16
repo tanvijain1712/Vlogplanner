@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Profile — VlogPlanner{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header"><h5 class="mb-0">Account Details</h5></div>
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div style="width:60px;height:60px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:var(--ink)">
+            {{ user.first_name|first|upper|default:user.username|first|upper }}
+          </div>
+          <div>
+            <div style="font-weight:600">{{ user.get_full_name|default:user.username }}</div>
+            <div style="font-size:.83rem;color:var(--muted)">@{{ user.username }}</div>
+          </div>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger mt-1" style="font-size:.8rem">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn-terra">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mt-4 mt-md-0">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fff3e0">🗺️</div>
+      <div class="stat-value">{{ user.trips.count }}</div>
+      <div class="stat-label">Trips planned</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

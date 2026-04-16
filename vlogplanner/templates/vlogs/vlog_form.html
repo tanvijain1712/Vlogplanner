@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}{% if object %}Edit Note{% else %}New Vlog Note{% endif %} — {{ trip.trip_name }}{% endblock %}
+{% block page_title %}{% if object %}Edit Vlog Note{% else %}New Vlog Note{% endif %}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'vlog_list' trip.pk %}" class="btn btn-sm btn-light">← Back</a>
+{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header">
+        <span style="font-weight:600">{{ trip.trip_name }}</span>
+      </div>
+      <div class="card-body">
+        <!-- Tips Banner -->
+        <div style="background:linear-gradient(135deg,rgba(201,113,74,.07),rgba(74,143,168,.07));border-radius:12px;padding:14px 18px;margin-bottom:24px;display:flex;gap:12px;align-items:flex-start">
+          <span style="font-size:1.3rem">💡</span>
+          <div style="font-size:.82rem;color:var(--ink)">
+            <strong>Vlog Tip:</strong> Start with a punchy hook question or statement. Structure your note as:
+            <em>Hook → Story Setup → Key Moments → CTA</em>
+          </div>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-4">
+            <label class="form-label">
+              {{ field.label }}
+              {% if field.name == 'hook' %}<span style="color:var(--terra);font-size:.75rem;font-weight:400">&nbsp;— grab attention in 1–2 sentences</span>{% endif %}
+              {% if field.name == 'content_notes' %}<span style="color:var(--muted);font-size:.75rem;font-weight:400">&nbsp;— script, shot list, key moments</span>{% endif %}
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <div class="text-danger mt-1" style="font-size:.8rem">{{ field.errors.0 }}</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+          <div class="d-flex gap-2 mt-2">
+            <button type="submit" class="btn-terra">{% if object %}Save Changes{% else %}Save Note{% endif %}</button>
+            <a href="{% url 'vlog_list' trip.pk %}" class="btn btn-light">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

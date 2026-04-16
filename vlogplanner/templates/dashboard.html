@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — VlogPlanner{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'trip_create' %}" class="btn-terra" style="font-size:.85rem;padding:8px 16px">+ New Trip</a>
+{% endblock %}
+{% block content %}
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#e8f4f8">🗺️</div>
+      <div class="stat-value">{{ total_trips }}</div>
+      <div class="stat-label">Total Trips</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#e8f5e9">💰</div>
+      <div class="stat-value">₹{{ total_estimated|floatformat:0 }}</div>
+      <div class="stat-label">Total Budget</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fff3e0">💸</div>
+      <div class="stat-value">₹{{ total_spent|floatformat:0 }}</div>
+      <div class="stat-label">Total Spent</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fce4ec">✨</div>
+      <div class="stat-value">₹{{ remaining|floatformat:0 }}</div>
+      <div class="stat-label">Remaining</div>
+    </div>
+  </div>
+</div>
+
+<!-- Trips Grid -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h2 style="font-size:1.4rem;margin:0">Recent Trips</h2>
+  <a href="{% url 'trip_list' %}" style="color:var(--terra);font-size:.85rem;text-decoration:none">View all →</a>
+</div>
+
+{% if trips %}
+<div class="row g-3">
+  {% for trip in trips %}
+  <div class="col-md-6 col-lg-4">
+    <a href="{% url 'trip_detail' trip.pk %}" class="trip-card">
+      <div class="trip-card-cover">
+        {% if trip.cover_image %}<img src="{{ trip.cover_image.url }}" alt="">{% endif %}
+        <span class="trip-mode-badge">{{ trip.get_travel_mode_display }}</span>
+      </div>
+      <div class="trip-card-body">
+        <h5>{{ trip.trip_name }}</h5>
+        <div class="destination">📍 {{ trip.destination }}</div>
+        <div class="trip-meta">
+          <span><i class="bi bi-calendar3"></i> {{ trip.start_date|date:"M d" }} – {{ trip.end_date|date:"M d, Y" }}</span>
+          <span><i class="bi bi-clock"></i> {{ trip.duration }} days</span>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">Budget used</div>
+          {% with pct=trip.total_actual|floatformat:0 est=trip.total_estimated|floatformat:0 %}
+          <div class="budget-bar">
+            {% if trip.total_estimated > 0 %}
+            <div class="budget-bar-fill {% if trip.total_actual > trip.total_estimated %}over{% endif %}"
+                 style="width:{% widthratio trip.total_actual trip.total_estimated 100 %}%"></div>
+            {% endif %}
+          </div>
+          {% endwith %}
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">✈️</div>
+  <h4>No trips yet</h4>
+  <p style="font-size:.9rem">Plan your first adventure to get started!</p>
+  <a href="{% url 'trip_create' %}" class="btn-terra" style="display:inline-block;margin-top:16px;text-decoration:none">Create First Trip</a>
+</div>
+{% endif %}
+{% endblock %}

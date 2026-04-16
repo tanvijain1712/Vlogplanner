@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Upload Photo — {{ trip.trip_name }}{% endblock %}
+{% block page_title %}Upload Photo{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'photo_gallery' trip.pk %}" class="btn btn-sm btn-light">← Gallery</a>
+{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <span style="font-weight:600">{{ trip.trip_name }}</span>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <!-- Drop zone preview -->
+          <div id="drop-zone" style="border:2px dashed var(--border);border-radius:14px;padding:36px;text-align:center;margin-bottom:24px;cursor:pointer;transition:.2s;background:var(--sand)" onclick="document.getElementById('id_image').click()">
+            <div id="preview-wrap" style="display:none">
+              <img id="preview-img" src="" style="max-height:220px;max-width:100%;border-radius:10px;object-fit:contain">
+            </div>
+            <div id="drop-placeholder">
+              <div style="font-size:2.5rem;margin-bottom:10px">📷</div>
+              <div style="font-size:.9rem;color:var(--muted)">Click to choose a photo</div>
+              <div style="font-size:.76rem;color:var(--muted);margin-top:4px">JPG, PNG, WEBP</div>
+            </div>
+          </div>
+
+          {% for field in form %}
+          <div class="mb-3" {% if field.name == 'image' %}style="display:none"{% endif %}>
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <div class="text-danger mt-1" style="font-size:.8rem">{{ field.errors.0 }}</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn-terra">Upload Photo</button>
+            <a href="{% url 'photo_gallery' trip.pk %}" class="btn btn-light">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const input = document.getElementById('id_image');
+const preview = document.getElementById('preview-img');
+const previewWrap = document.getElementById('preview-wrap');
+const placeholder = document.getElementById('drop-placeholder');
+const dropZone = document.getElementById('drop-zone');
+
+input.addEventListener('change', function() {
+  if (this.files && this.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      previewWrap.style.display = 'block';
+      placeholder.style.display = 'none';
+      dropZone.style.borderColor = 'var(--terra)';
+      dropZone.style.borderStyle = 'solid';
+    };
+    reader.readAsDataURL(this.files[0]);
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block title %}{{ trip.trip_name }} — VlogPlanner{% endblock %}
+{% block page_title %}{{ trip.trip_name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'trip_update' trip.pk %}" class="btn btn-sm btn-light">Edit Trip</a>
+<a href="{% url 'trip_delete' trip.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+{% endblock %}
+{% block content %}
+
+<!-- Trip Hero -->
+<div class="card mb-4" style="overflow:hidden">
+  <div style="height:180px;background:linear-gradient(135deg,var(--ink),var(--terra));position:relative">
+    {% if trip.cover_image %}<img src="{{ trip.cover_image.url }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" alt="">{% endif %}
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,.35);padding:28px 28px;display:flex;align-items:flex-end">
+      <div>
+        <h2 style="color:#fff;margin:0;font-size:2rem">{{ trip.trip_name }}</h2>
+        <div style="color:rgba(255,255,255,.8);font-size:.95rem;margin-top:4px">📍 {{ trip.destination }} &nbsp;·&nbsp; {{ trip.get_travel_mode_display }} &nbsp;·&nbsp; {{ trip.duration }} days</div>
+        <div style="color:rgba(255,255,255,.65);font-size:.85rem;margin-top:4px">{{ trip.start_date|date:"F d, Y" }} → {{ trip.end_date|date:"F d, Y" }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Nav -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a href="{% url 'budget_list' trip.pk %}" class="btn btn-sm btn-light"><i class="bi bi-wallet2"></i> Budget</a>
+  <a href="{% url 'place_list' trip.pk %}" class="btn btn-sm btn-light"><i class="bi bi-geo-alt"></i> Places</a>
+  <a href="{% url 'itinerary_list' trip.pk %}" class="btn btn-sm btn-light"><i class="bi bi-calendar-week"></i> Itinerary</a>
+  <a href="{% url 'vlog_list' trip.pk %}" class="btn btn-sm btn-light"><i class="bi bi-camera-video"></i> Vlog Notes</a>
+  <a href="{% url 'photo_gallery' trip.pk %}" class="btn btn-sm btn-light"><i class="bi bi-images"></i> Photos</a>
+</div>
+
+<div class="row g-3">
+  <!-- Budget Summary -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <span style="font-weight:600;font-size:.95rem">💰 Budget Summary</span>
+        <a href="{% url 'budget_create' trip.pk %}" style="color:var(--terra);font-size:.82rem;text-decoration:none">+ Add</a>
+      </div>
+      <div class="card-body">
+        <div class="row text-center mb-3">
+          <div class="col">
+            <div style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700">₹{{ trip.total_estimated|floatformat:0 }}</div>
+            <div style="font-size:.75rem;color:var(--muted)">Estimated</div>
+          </div>
+          <div class="col">
+            <div style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--terra)">₹{{ trip.total_actual|floatformat:0 }}</div>
+            <div style="font-size:.75rem;color:var(--muted)">Spent</div>
+          </div>
+          <div class="col">
+            <div style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--sage)">₹{{ trip.remaining_budget|floatformat:0 }}</div>
+            <div style="font-size:.75rem;color:var(--muted)">Remaining</div>
+          </div>
+        </div>
+        {% for cat in budget_by_cat %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between" style="font-size:.8rem;margin-bottom:3px">
+            <span>{{ cat.category|title }}</span>
+            <span style="color:var(--muted)">₹{{ cat.actual|floatformat:0 }} / ₹{{ cat.est|floatformat:0 }}</span>
+          </div>
+          <div class="budget-bar">
+            {% if cat.est > 0 %}
+            <div class="budget-bar-fill {% if cat.actual > cat.est %}over{% endif %}"
+                 style="width:{% widthratio cat.actual cat.est 100 %}%"></div>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:20px 0">No budget entries yet</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Places Summary -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <span style="font-weight:600;font-size:.95rem">📍 Places</span>
+        <a href="{% url 'place_list' trip.pk %}" style="color:var(--terra);font-size:.82rem;text-decoration:none">View all →</a>
+      </div>
+      <div class="card-body">
+        <div class="d-flex gap-3 mb-3">
+          <div class="badge-pending" style="font-size:.8rem">{{ places_pending }} Pending</div>
+          <div class="badge-visited" style="font-size:.8rem">{{ places_visited }} Visited</div>
+        </div>
+        {% for place in trip.places.all|slice:":6" %}
+        <div class="d-flex align-items-center justify-content-between mb-2" style="padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:.88rem">{{ place.place_name }}</span>
+          <span class="badge-{{ place.status }}">{{ place.get_status_display }}</span>
+        </div>
+        {% empty %}<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:20px 0">No places added yet</div>
+        {% endfor %}
+        <a href="{% url 'place_create' trip.pk %}" style="color:var(--terra);font-size:.83rem;text-decoration:none;display:block;text-align:center;margin-top:8px">+ Add Place</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Itinerary Preview -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <span style="font-weight:600;font-size:.95rem">📅 Itinerary</span>
+        <a href="{% url 'itinerary_list' trip.pk %}" style="color:var(--terra);font-size:.82rem;text-decoration:none">View all →</a>
+      </div>
+      <div class="card-body">
+        {% for day, items in itinerary_days.items %}
+        <div class="day-badge">Day {{ day }}</div>
+        <div class="timeline mb-3">
+          {% for item in items %}
+          <div class="timeline-item">
+            <div style="font-size:.82rem;color:var(--muted)">{{ item.time_slot|time:"H:i" }}</div>
+            <div style="font-size:.88rem;font-weight:500">{{ item.activity }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% empty %}<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:20px 0">No itinerary planned</div>
+        {% endfor %}
+        <a href="{% url 'itinerary_create' trip.pk %}" style="color:var(--terra);font-size:.83rem;text-decoration:none;display:block;text-align:center;margin-top:8px">+ Add Activity</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vlog Notes Preview -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <span style="font-weight:600;font-size:.95rem">🎬 Vlog Notes</span>
+        <a href="{% url 'vlog_list' trip.pk %}" style="color:var(--terra);font-size:.82rem;text-decoration:none">View all →</a>
+      </div>
+      <div class="card-body">
+        {% for day, notes in vlog_days.items %}
+        <div class="day-badge">Day {{ day }}</div>
+        {% for note in notes %}
+        <div style="padding:10px;background:var(--sand);border-radius:10px;margin-bottom:8px">
+          <div style="font-size:.88rem;font-weight:600">{{ note.script_title }}</div>
+          {% if note.hook %}<div style="font-size:.78rem;color:var(--muted);margin-top:2px">Hook: {{ note.hook|truncatechars:60 }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        {% empty %}<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:20px 0">No vlog notes yet</div>
+        {% endfor %}
+        <a href="{% url 'vlog_create' trip.pk %}" style="color:var(--terra);font-size:.83rem;text-decoration:none;display:block;text-align:center;margin-top:8px">+ Add Note</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Photos -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <span style="font-weight:600;font-size:.95rem">📸 Recent Photos</span>
+        <a href="{% url 'photo_gallery' trip.pk %}" style="color:var(--terra);font-size:.82rem;text-decoration:none">Gallery →</a>
+      </div>
+      <div class="card-body">
+        {% if trip.photos.exists %}
+        <div class="photo-grid">
+          {% for photo in trip.photos.all|slice:":8" %}
+          <div class="photo-item">
+            <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
+            <div class="photo-overlay"><span class="photo-caption">{{ photo.caption|truncatechars:40 }}</span></div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:24px;color:var(--muted);font-size:.85rem">No photos uploaded yet</div>
+        {% endif %}
+        <a href="{% url 'photo_upload' trip.pk %}" style="color:var(--terra);font-size:.83rem;text-decoration:none;display:block;text-align:center;margin-top:12px">+ Upload Photos</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

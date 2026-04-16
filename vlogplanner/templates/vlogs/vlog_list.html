@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Vlog Notes — {{ trip.trip_name }}{% endblock %}
+{% block page_title %}Vlog Notes — {{ trip.trip_name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'trip_detail' trip.pk %}" class="btn btn-sm btn-light">← Back</a>
+<a href="{% url 'vlog_create' trip.pk %}" class="btn-terra" style="font-size:.85rem;padding:8px 16px">+ New Note</a>
+{% endblock %}
+{% block content %}
+
+{% if days %}
+  {% for day_num, notes in days.items %}
+  <div class="mb-4">
+    <div class="day-badge">Day {{ day_num }}</div>
+    <div class="row g-3">
+      {% for note in notes %}
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <!-- Title row -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h5 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin:0;flex:1;padding-right:12px">
+                🎬 {{ note.script_title }}
+              </h5>
+              <div class="d-flex gap-2">
+                <a href="{% url 'vlog_update' note.pk %}" style="color:var(--sky);font-size:.8rem;text-decoration:none">Edit</a>
+                <form method="post" action="{% url 'vlog_delete' note.pk %}" style="display:inline" onsubmit="return confirm('Delete this note?')">
+                  {% csrf_token %}
+                  <button style="border:none;background:none;color:#dc3545;font-size:.8rem;cursor:pointer;padding:0">Delete</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Hook -->
+            {% if note.hook %}
+            <div style="background:linear-gradient(135deg,rgba(201,113,74,.08),rgba(74,143,168,.08));border-left:3px solid var(--terra);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:14px">
+              <div style="font-size:.7rem;font-weight:600;color:var(--terra);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Opening Hook</div>
+              <div style="font-size:.88rem;font-style:italic;color:var(--ink)">"{{ note.hook }}"</div>
+            </div>
+            {% endif %}
+
+            <!-- Content Notes -->
+            <div style="font-size:.85rem;color:var(--muted);white-space:pre-line;line-height:1.6;margin-bottom:14px">
+              {{ note.content_notes|truncatechars:200 }}
+            </div>
+
+            <!-- Thumbnail Idea -->
+            {% if note.thumbnail_idea %}
+            <div style="display:flex;align-items:center;gap:8px;background:var(--sand);border-radius:8px;padding:8px 12px">
+              <span style="font-size:.9rem">🖼️</span>
+              <div>
+                <div style="font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Thumbnail Idea</div>
+                <div style="font-size:.82rem;color:var(--ink)">{{ note.thumbnail_idea }}</div>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Meta -->
+            <div style="font-size:.72rem;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+              Updated {{ note.updated_at|date:"M d, Y" }}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🎬</div>
+  <h4>No vlog notes yet</h4>
+  <p style="font-size:.9rem">Start writing scripts and content ideas for each day</p>
+  <a href="{% url 'vlog_create' trip.pk %}" class="btn-terra" style="display:inline-block;margin-top:16px;text-decoration:none">Write First Note</a>
+</div>
+{% endif %}
+{% endblock %}

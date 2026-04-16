@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Budget — {{ trip.trip_name }}{% endblock %}
+{% block page_title %}Budget — {{ trip.trip_name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'trip_detail' trip.pk %}" class="btn btn-sm btn-light">← Back</a>
+<a href="{% url 'budget_create' trip.pk %}" class="btn-terra" style="font-size:.85rem;padding:8px 16px">+ Add Entry</a>
+{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#e8f5e9">📊</div>
+      <div class="stat-value">₹{{ total_estimated|floatformat:0 }}</div>
+      <div class="stat-label">Total Estimated</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fff3e0">💸</div>
+      <div class="stat-value" style="color:var(--terra)">₹{{ total_actual|floatformat:0 }}</div>
+      <div class="stat-label">Total Spent</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#e8f4f8">✅</div>
+      <div class="stat-value" style="color:var(--sage)">₹{{ remaining|floatformat:0 }}</div>
+      <div class="stat-label">Remaining</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Chart -->
+  {% if summary %}
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header"><span style="font-weight:600;font-size:.95rem">Spending by Category</span></div>
+      <div class="card-body" style="display:flex;align-items:center;justify-content:center">
+        <canvas id="budgetChart" width="280" height="280"></canvas>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Table -->
+  <div class="col-md-{% if summary %}7{% else %}12{% endif %}">
+    <div class="card">
+      <div class="card-header"><span style="font-weight:600;font-size:.95rem">All Entries</span></div>
+      <div class="card-body" style="padding:0">
+        {% if budgets %}
+        <table class="table table-hover mb-0">
+          <thead><tr>
+            <th style="padding:14px 20px">Category</th>
+            <th>Description</th>
+            <th>Estimated</th>
+            <th>Actual</th>
+            <th>Date</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+          {% for b in budgets %}
+          <tr>
+            <td style="padding:12px 20px">
+              <span style="background:var(--sand);padding:4px 10px;border-radius:8px;font-size:.78rem;font-weight:500">{{ b.get_category_display }}</span>
+            </td>
+            <td style="font-size:.85rem">{{ b.description|default:"—" }}</td>
+            <td style="font-size:.88rem">₹{{ b.estimated_cost }}</td>
+            <td style="font-size:.88rem;{% if b.actual_cost > b.estimated_cost %}color:#dc3545{% else %}color:var(--sage){% endif %}">₹{{ b.actual_cost }}</td>
+            <td style="font-size:.8rem;color:var(--muted)">{{ b.date|date:"M d" }}</td>
+            <td>
+              <a href="{% url 'budget_update' b.pk %}" style="color:var(--sky);font-size:.82rem;text-decoration:none;margin-right:8px">Edit</a>
+              <form method="post" action="{% url 'budget_delete' b.pk %}" style="display:inline" onsubmit="return confirm('Remove this entry?')">
+                {% csrf_token %}<button type="submit" style="border:none;background:none;color:#dc3545;font-size:.82rem;cursor:pointer">Remove</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><div class="empty-icon">💰</div><p>No budget entries yet</p></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if summary %}
+<script>
+const summaryData = {{ summary|safe }};
+const labels = summaryData.map(d => d.category.charAt(0).toUpperCase() + d.category.slice(1));
+const estimated = summaryData.map(d => parseFloat(d.est) || 0);
+const actual = summaryData.map(d => parseFloat(d.actual) || 0);
+const colors = ['#c9714a','#4a8fa8','#7a9e7e','#d4a843','#9b59b6','#e74c3c'];
+new Chart(document.getElementById('budgetChart'), {
+  type: 'doughnut',
+  data: {
+    labels,
+    datasets: [{data: actual.length ? actual : [1], backgroundColor: colors, borderWidth: 0, hoverOffset: 6}]
+  },
+  options: {
+    responsive: false,
+    plugins: {legend: {position: 'bottom', labels: {font: {family: 'DM Sans', size: 12}, padding: 12}}}
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

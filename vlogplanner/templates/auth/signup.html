@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Create Account — VlogPlanner{% endblock %}
+{% block page_title %}Create Account{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="mb-1" style="font-size:1.6rem">Join VlogPlanner</h2>
+        <p class="text-muted mb-4" style="font-size:.88rem">Start planning your travel vlogs today</p>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger mt-1" style="font-size:.8rem">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn-terra w-100 mt-2">Create Account →</button>
+        </form>
+        <p class="text-center mt-3" style="font-size:.85rem;color:var(--muted)">
+          Already have an account? <a href="{% url 'login' %}" style="color:var(--terra);font-weight:500">Sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

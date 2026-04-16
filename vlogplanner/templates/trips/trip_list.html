@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}My Trips — VlogPlanner{% endblock %}
+{% block page_title %}My Trips{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'trip_create' %}" class="btn-terra" style="font-size:.85rem;padding:8px 16px">+ New Trip</a>
+{% endblock %}
+{% block content %}
+{% if trips %}
+<div class="row g-3">
+  {% for trip in trips %}
+  <div class="col-md-6 col-lg-4">
+    <a href="{% url 'trip_detail' trip.pk %}" class="trip-card">
+      <div class="trip-card-cover">
+        {% if trip.cover_image %}<img src="{{ trip.cover_image.url }}" alt="">{% endif %}
+        <span class="trip-mode-badge">{{ trip.get_travel_mode_display }}</span>
+      </div>
+      <div class="trip-card-body">
+        <h5>{{ trip.trip_name }}</h5>
+        <div class="destination">📍 {{ trip.destination }}</div>
+        <div class="trip-meta">
+          <span><i class="bi bi-calendar3"></i> {{ trip.start_date|date:"M d, Y" }}</span>
+          <span><i class="bi bi-clock"></i> {{ trip.duration }} days</span>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🗺️</div>
+  <h4>No trips planned yet</h4>
+  <a href="{% url 'trip_create' %}" class="btn-terra" style="display:inline-block;margin-top:16px;text-decoration:none">Plan First Trip</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,4 @@
+/* Additional overrides — all core styles live in base.html */
+.form-control, .form-select { display: block; width: 100%; }
+textarea.form-control { resize: vertical; min-height: 100px; }
+.btn { border-radius: 10px; }
